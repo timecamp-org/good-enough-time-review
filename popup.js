@@ -1322,19 +1322,40 @@ function updateStatistics() {
     topEventsByMinutes.forEach((eventStat, index) => {
       const weekData = weekDataByCategory[eventStat.name];
       if (Object.keys(weekData).length > 0) {
+        // Calculate SVG points
+        const weekValues = Object.values(weekData);
+        const weekCount = weekValues.length;
+        
+        // Use the same scale for all categories (maxWeeklyHours)
+        // Map values to SVG coordinates (0-100 for x, 0-100 for y, where 100 is bottom)
+        let points = ["0,100"]; // Start at bottom-left
+        const step = weekCount > 1 ? 100 / (weekCount - 1) : 100;
+        
+        weekValues.forEach((value, i) => {
+          const x = i * step;
+          // Scale y: 0 hours = 100 (bottom), maxWeeklyHours = 0 (top)
+          // Safeguard against division by zero if maxWeeklyHours is 0
+          const scaleFactor = maxWeeklyHours > 0 ? value / maxWeeklyHours : 0;
+          const y = Math.max(0, 100 - (scaleFactor * 100)); 
+          points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+        });
+        
+        points.push("100,100"); // End at bottom-right
+        
         hoursOverTimeHTML += `
           <div class="category-chart">
-            <div class="category-name">
-              <span class="category-label">${eventStat.name}</span>
-              <span class="category-stats">${(eventStat.totalMinutes / 60).toFixed(1)}h total</span>
-            </div>
             <div class="time-distribution-chart">
               <div class="chart-row single-category">
                 <div class="chart-area-container hours-over-time">
-                  <div class="chart-area" 
-                       style="background-color: ${categoryColors[index % categoryColors.length]}; 
-                              opacity: 0.8;">
+                  <div class="category-name">
+                    <span class="category-label">${eventStat.name}</span>
+                    <span class="category-stats">${(eventStat.totalMinutes / 60).toFixed(1)}h total</span>
                   </div>
+                  <svg class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polygon points="${points.join(' ')}" 
+                             fill="${categoryColors[index % categoryColors.length]}" 
+                             style="opacity: 0.8;" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -1344,45 +1365,6 @@ function updateStatistics() {
     });
     
     hoursOverTimeElement.innerHTML = hoursOverTimeHTML || '<p class="text-muted-foreground">No hours over time data available</p>';
-    
-    // Create the timeline charts for each category
-    document.querySelectorAll('#hours-over-time .category-chart').forEach((chartElement, index) => {
-      const eventStat = topEventsByMinutes[index];
-      if (!eventStat) return;
-      
-      const chartArea = chartElement.querySelector('.chart-area');
-      if (!chartArea) return;
-      
-      const weekData = weekDataByCategory[eventStat.name];
-      const weekValues = Object.values(weekData);
-      
-      // Use the same scale for all categories
-      const normalizedValues = weekValues.map(value => 
-        100 - (value / maxWeeklyHours * 70) // Invert and scale to keep waves visible
-      );
-      
-      // Create polygon points with a smooth wave-like pattern
-      let points = [];
-      
-      // Start and end at the bottom
-      points.push('0 100%');
-      
-      // Add points for each week
-      const weekCount = weekValues.length;
-      const step = weekCount > 1 ? 100 / (weekCount - 1) : 100;
-      
-      weekValues.forEach((value, i) => {
-        const x = i * step;
-        const y = normalizedValues[i];
-        points.push(`${x}% ${y}%`);
-      });
-      
-      // End at the right bottom
-      points.push('100% 100%');
-      
-      // Apply the custom polygon
-      chartArea.style.clipPath = `polygon(${points.join(', ')})`;
-    });
   }
 
   // Generate time heatmap if the function exists
