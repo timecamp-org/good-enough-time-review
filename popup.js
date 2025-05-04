@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global variable to store the parsed CSV data
 let allCsvData = [];
-// Global variable to store the normalization rules
+// Global variable to store the cleanup rules
 let normalizationRules = {};
 
 // Initialize the application
@@ -86,14 +86,14 @@ function initEventListeners() {
   // Test normalization rules button
   document.getElementById('test-normalization').addEventListener('click', testNormalization);
   
-  // Apply normalization rules button
+  // Apply cleanup rules button
   document.getElementById('apply-normalization').addEventListener('click', applyNormalization);
   
   // Save rules on textarea input
   const rulesTextarea = document.getElementById('normalization-rules');
   rulesTextarea.addEventListener('input', saveNormalizationRules);
   
-  // Load saved normalization rules if they exist
+  // Load saved cleanup rules if they exist
   chrome.storage.local.get(['normalizationRulesText', 'normalizationRules'], (data) => {
     console.log('Loading rules from storage:', data);
     
@@ -218,14 +218,20 @@ function switchTab(tabName) {
   });
   document.getElementById(`${tabName}-tab`).style.display = 'block';
   
-  // If normalize tab is selected and we have data, update the unique events list
-  if (tabName === 'normalize' && allCsvData.length > 0) {
+  // If cleanup tab is selected and we have data, update the unique events list
+  if (tabName === 'cleanup' && allCsvData.length > 0) {
     updateUniqueEventsTable();
   }
 
-  // If statistics tab is selected and we have data, update the statistics
+  // If statistics tab is selected and we have data, apply cleanup and update the statistics
   if (tabName === 'statistics' && allCsvData.length > 0) {
-    updateStatistics();
+    // Apply cleanup rules first (if not already applied)
+    if (!allCsvData.some(event => 'NormalizedSummary' in event)) {
+      applyNormalization();
+    } else {
+      // Otherwise just update the statistics
+      updateStatistics();
+    }
   }
 }
 
@@ -290,10 +296,10 @@ function handleFileUpload(event) {
         fileInfo.innerHTML = fileInfoHtml;
         clearFiles.style.display = 'block';
         
-        // Enable the Normalize tab
+        // Enable the Cleanup tab
         document.querySelector('[data-tab="normalize"]').classList.remove('disabled');
         
-        // Auto-switch to the normalize tab
+        // Auto-switch to the cleanup tab
         switchTab('normalize');
       }
     };
@@ -437,8 +443,9 @@ function updateUniqueEventsTable() {
         <p>Found <strong>${sortedEvents.length}</strong> unique events and <strong>${sortedCalendars.length}</strong> unique calendars</p>
         ${totalIgnored > 0 ? `<p class="text-xs text-muted-foreground">(<strong>${totalIgnored}</strong> will be ignored in statistics)</p>` : ''}
       </div>
-      <div>
+      <div class="flex gap-2">
         <button id="toggle-matched" class="button button-secondary">Hide Matched</button>
+        <button id="export-events" class="button button-primary">Export</button>
       </div>
     </div>
     <div class="table-wrapper">
@@ -484,6 +491,12 @@ function updateUniqueEventsTable() {
     range.selectNodeContents(tableWrapper);
     selection.removeAllRanges();
     selection.addRange(range);
+  });
+
+  // Export to CSV functionality
+  const exportButton = document.getElementById('export-events');
+  exportButton.addEventListener('click', () => {
+    exportEventsToCsv(allCsvData, eventRules, eventNormalized);
   });
 
   // Toggle matched/unmatched events
@@ -663,6 +676,7 @@ function processRowDates(row) {
         row['StartDate'] = start;
         row['EndDate'] = end;
         row['Duration'] = (end - start) / (1000 * 60); // Duration in minutes
+        row['IsAllDay'] = false;
       }
     } catch (e) {
       console.error('Error parsing dates', e);
@@ -675,7 +689,8 @@ function processRowDates(row) {
       if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
         row['StartDate'] = start;
         row['EndDate'] = end;
-        row['Duration'] = (end - start) / (1000 * 60 * 60 * 24); // Duration in days for all-day events
+        row['Duration'] = (end - start) / (1000 * 60 * 60 * 24) * 24 * 60; // Convert to minutes for consistency
+        row['IsAllDay'] = true; // Mark as all-day event
       }
     } catch (e) {
       console.error('Error parsing dates', e);
@@ -763,7 +778,7 @@ function testNormalization() {
     resultElement.innerHTML = `
       <div class="card mt-4">
         <div class="card-content">
-          <p class="text-destructive">No valid normalization rules found</p>
+          <p class="text-destructive">No valid cleanup rules found</p>
           <p>Please enter rules in one of the supported formats.</p>
         </div>
       </div>
@@ -885,8 +900,8 @@ function applyNormalization() {
     resultElement.innerHTML = `
       <div class="card mt-4">
         <div class="card-content">
-          <p class="text-green-500">Normalization rules applied successfully!</p>
-          <p>Events normalized: <strong>${normalizedCount}</strong> out of ${allCsvData.length}</p>
+          <p class="text-green-500">Cleanup rules applied successfully!</p>
+          <p>Events cleaned: <strong>${normalizedCount}</strong> out of ${allCsvData.length}</p>
         </div>
       </div>
     `;
@@ -918,18 +933,136 @@ function formatMinutes(minutes) {
   }
 }
 
+// Function to export calendar events to CSV
+function exportEventsToCsv(data, eventRules, eventNormalized) {
+  // Apply the same filtering as in updateStatistics
+  const filteredData = data.filter(event => {
+    const normalizedSummary = event.NormalizedSummary?.toUpperCase();
+    
+    // Skip ignored events
+    if (normalizedSummary === 'IGNORE') return false;
+    
+    // Skip all-day events
+    if (event.IsAllDay === true) return false;
+    
+    // Skip events longer than 20 hours (1200 minutes)
+    if (event.Duration && !isNaN(event.Duration) && event.Duration > 1200) return false;
+    
+    return true;
+  });
+  
+  // Prepare the data for export
+  const exportData = filteredData.map(event => {
+    const summary = (event.Summary || '').toLowerCase();
+    const matchingRule = eventRules[summary] || '-';
+    const normalized = eventNormalized[summary] || summary;
+    const hours = event.Duration ? (event.Duration / 60).toFixed(1) : '0.0';
+    
+    // Format the date in YYYY-MM-DD format
+    let dateStr = '';
+    if (event.StartDate) {
+      const date = event.StartDate;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dateStr = `${year}-${month}-${day}`;
+    }
+    
+    return {
+      Date: dateStr,
+      Event: event.Summary || '',
+      'Matching Rule': matchingRule,
+      Normalized: normalized,
+      Hours: hours
+    };
+  });
+  
+  // Create CSV content
+  let csvContent = 'Date,Event,Matching Rule,Normalized,Hours\n';
+  
+  exportData.forEach(row => {
+    // Properly escape fields for CSV
+    const escapedRow = [
+      escapeCsvField(row.Date),
+      escapeCsvField(row.Event),
+      escapeCsvField(row['Matching Rule']),
+      escapeCsvField(row.Normalized),
+      row.Hours
+    ];
+    
+    csvContent += escapedRow.join(',') + '\n';
+  });
+  
+  // Create a download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  // Set up the download link
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'calendar_events_export.csv');
+  link.style.display = 'none';
+  
+  // Add to the document, trigger download, and clean up
+  document.body.appendChild(link);
+  link.click();
+  
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showNotification('Export completed!');
+  }, 100);
+}
+
+// Helper function to escape CSV fields
+function escapeCsvField(field) {
+  if (field === null || field === undefined) return '';
+  
+  // Convert to string
+  const str = String(field);
+  
+  // If the field contains quotes, commas, or newlines, wrap it in quotes
+  // and escape any quotes within it by doubling them
+  if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  
+  return str;
+}
+
 // Update statistics and charts
 function updateStatistics() {
   if (allCsvData.length === 0) return;
   
-  // Filter out ignored events
+  // Filter out ignored events, all-day events, and events longer than 20 hours
   const filteredData = allCsvData.filter(event => {
     const normalizedSummary = event.NormalizedSummary?.toUpperCase();
-    return normalizedSummary !== 'IGNORE';
+    
+    // Skip ignored events
+    if (normalizedSummary === 'IGNORE') return false;
+    
+    // Skip all-day events
+    if (event.IsAllDay === true) return false;
+    
+    // Skip events longer than 20 hours (1200 minutes)
+    if (event.Duration && !isNaN(event.Duration) && event.Duration > 1200) return false;
+    
+    return true;
   });
   
   // Count total events (including ignored ones)
   document.getElementById('total-events').textContent = allCsvData.length;
+  
+  // Show information about filtered events
+  const ignoredCount = allCsvData.filter(event => event.NormalizedSummary?.toUpperCase() === 'IGNORE').length;
+  const allDayCount = allCsvData.filter(event => event.IsAllDay === true).length;
+  const longEventsCount = allCsvData.filter(event => 
+    event.Duration && !isNaN(event.Duration) && event.Duration > 1200 && event.IsAllDay !== true
+  ).length;
+  const totalFilteredOut = allCsvData.length - filteredData.length;
+  
+  document.getElementById('filtered-events-info').textContent = 
+    `Analyzing ${filteredData.length} events (${ignoredCount} ignored, ${allDayCount} all-day, ${longEventsCount} >20h filtered out)`;
   
   // Count events being analyzed (excluding ignored ones)
   const analyzedEventsElement = document.getElementById('analyzed-events');
