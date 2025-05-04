@@ -1061,9 +1061,6 @@ function updateStatistics() {
   ).length;
   const totalFilteredOut = allCsvData.length - filteredData.length;
   
-  document.getElementById('filtered-events-info').textContent = 
-    `Analyzing ${filteredData.length} events (${ignoredCount} ignored, ${allDayCount} all-day, ${longEventsCount} >20h filtered out)`;
-  
   // Count events being analyzed (excluding ignored ones)
   const analyzedEventsElement = document.getElementById('analyzed-events');
   if (analyzedEventsElement) {
@@ -1160,7 +1157,6 @@ function updateStatistics() {
     .sort((a, b) => b.totalMinutes - a.totalMinutes); // Sort by hours without limiting to top 10
   
   // Show the number of event types
-  document.getElementById('events-count').textContent = `Showing all ${sortedEventStats.length} event types`;
   
   // Display event frequency table
   const eventFrequencyElement = document.getElementById('event-frequency');

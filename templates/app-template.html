@@ -1,30 +1,33 @@
 <div class="">
+  <!-- Add Font Awesome CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <div class="card-header">
-    <h1 class="card-title">Calendar Events Analyzer</h1>
-    <p class="card-description">Upload CSV files to analyze your calendar events</p>
+    <h1 class="card-title"><i class="fas fa-calendar-alt"></i> Calendar Events Analyzer</h1>
+    <p class="card-description">Upload CSV files to analyze your calendar events. But first, you need to <a href="https://www.timecamp.com/export-google-calendar/?utm_source=chrome_plugin&utm_medium=chrome_plugin&utm_campaign=chrome_plugin" target="_blank">export your calendars</a> as CSV by clicking the link.</p>
   </div>
   <div class="card-content">
     <div class="tabs mb-4">
-      <div class="tab active" data-tab="upload">Upload</div>
-      <div class="tab" data-tab="normalize">Cleanup</div>
-      <div class="tab" data-tab="statistics">Statistics</div>
+      <div class="tab active" data-tab="upload"><i class="fas fa-upload"></i> Upload</div>
+      <div class="tab" data-tab="normalize"><i class="fas fa-broom"></i> Cleanup</div>
+      <div class="tab" data-tab="statistics"><i class="fas fa-chart-bar"></i> Statistics</div>
     </div>
     
     <div id="upload-tab" class="tab-content">
       <div class="upload-area" id="upload-area">
-        <p>Drag and drop your CSV files here or click to browse</p>
+        <p><i class="fas fa-file-csv"></i> Drag and drop your CSV files here or click to browse</p>
         <p class="text-xs text-muted-foreground">You can select multiple files</p>
         <input type="file" id="file-input" accept=".csv" multiple style="display: none;" />
       </div>
       <div id="file-info" class="mt-4"></div>
       <div id="clear-files" class="mt-4" style="display: none;">
-        <button class="button button-secondary">Clear Files</button>
+        <button class="button button-secondary"><i class="fas fa-trash"></i> Clear Files</button>
       </div>
     </div>
     
     <div id="normalize-tab" class="tab-content" style="display: none;">
       <div class="mb-4">
-        <label class="label" for="normalization-rules">Event Name Cleanup Rules</label>
+        <label class="label" for="normalization-rules"><i class="fas fa-edit"></i> Event Name Cleanup Rules</label>
         <p class="text-xs text-muted-foreground mb-2">Support two formats:</p>
         <p class="text-xs text-muted-foreground mb-2">1. "Original Event Name=>Cleaned Name" - maps a pattern to a name</p>
         <p class="text-xs text-muted-foreground mb-2">2. "Cleaned Name<=pattern1,pattern2,pattern3" - maps multiple patterns to one name</p>
@@ -33,8 +36,8 @@
         <textarea id="normalization-rules" class="textarea" placeholder="*meeting*=>Meeting&#10;One-on-One<=*1:1*,*one on one*&#10;id:personal@gmail.com=>Personal&#10;IGNORE<=*standup*,*status update*"></textarea>
       </div>
       <div class="mb-4 flex gap-2">
-        <button id="test-normalization" class="button button-secondary">Test Rules</button>
-        <button id="apply-normalization" class="button button-primary">Apply Cleanup</button>
+        <button id="test-normalization" class="button button-secondary"><i class="fas fa-vial"></i> Test Rules</button>
+        <button id="apply-normalization" class="button button-primary"><i class="fas fa-check"></i> Apply Cleanup</button>
       </div>
       <div id="normalization-result" class="mt-4"></div>
       
@@ -50,39 +53,37 @@
     <div id="statistics-tab" class="tab-content" style="display: none;">
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="stat-card">
-          <h3>Total Events</h3>
+          <h3><i class="fas fa-calendar-check"></i> Total Events</h3>
           <div id="total-events" class="stat-value">0</div>
-          <p class="text-xs text-muted-foreground mt-1" id="filtered-events-info">-</p>
         </div>
         <div class="stat-card">
-          <h3>Timeframe</h3>
+          <h3><i class="fas fa-calendar-week"></i> Timeframe</h3>
           <div id="date-range" class="stat-value date-range">-</div>
         </div>
         <div class="stat-card">
-          <h3>Total Hours</h3>
+          <h3><i class="fas fa-clock"></i> Total Hours</h3>
           <div id="total-hours" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <h3>Average Event Duration</h3>
+          <h3><i class="fas fa-hourglass-half"></i> Average Event Duration</h3>
           <div id="avg-duration" class="stat-value">0 min</div>
         </div>
       </div>
       
       <div class="card mb-4">
         <div class="card-header">
-          <h3 class="card-title">Most Common Events</h3>
-          <p class="text-xs text-muted-foreground" id="events-count"></p>
+          <h3 class="card-title"><i class="fas fa-list-ol"></i> Most Common Events</h3>
         </div>
         <div class="card-content">
           <div id="event-frequency">
             <table class="stats-events-table">
               <thead>
                 <tr>
-                  <th class="text-left">Event</th>
-                  <th class="text-right">Hours</th>
-                  <th class="text-right">Per Day</th>
-                  <th class="text-right">Percentage</th>
-                  <th class="text-right">Number of events</th>
+                  <th class="text-left"><i class="fas fa-tag"></i> Event</th>
+                  <th class="text-right"><i class="fas fa-clock"></i> Hours</th>
+                  <th class="text-right"><i class="fas fa-calendar-day"></i> Per Day</th>
+                  <th class="text-right"><i class="fas fa-percentage"></i> Percentage</th>
+                  <th class="text-right"><i class="fas fa-hashtag"></i> Number of events</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +96,7 @@
       
       <div class="card mb-4">
         <div class="card-header">
-          <h3 class="card-title">Time Distribution by Day</h3>
+          <h3 class="card-title"><i class="fas fa-calendar"></i> Time Distribution by Day</h3>
         </div>
         <div class="card-content">
           <div id="day-distribution" class="chart-container"></div>
@@ -104,12 +105,20 @@
       
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">Time Distribution by Hour</h3>
+          <h3 class="card-title"><i class="fas fa-clock"></i> Time Distribution by Hour</h3>
         </div>
         <div class="card-content">
           <div id="hour-distribution" class="chart-container"></div>
         </div>
       </div>
     </div>
+    <div class="footer mt-4 text-center text-xs text-muted-foreground">
+        <p>
+          <a href="https://github.com/timecamp/good-enough-time-review" target="_blank" class="footer-link"><i class="fab fa-github"></i> GitHub</a> &nbsp; | &nbsp;
+          <span>Made by <a href="https://www.timecamp.com?utm_source=chrome_plugin&utm_medium=chrome_plugin&utm_campaign=chrome_plugin" target="_blank" class="footer-link">TimeCamp.com</a> - best automatic time tracking software</span>
+        </p>
+      </div>
   </div>
+  
+  
 </div> 

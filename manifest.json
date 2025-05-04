@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Calendar Events Analyzer",
+  "author": "Kamil Rudnicki (TimeCamp)",
+  "homepage_url": "https://www.timecamp.com",
+  
   "version": "1.0",
-  "description": "Upload and analyze calendar CSV files with event name normalization",
+  "description": "Upload and analyze calendar CSV files with event name cleanup",
   "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
