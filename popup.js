@@ -63,6 +63,12 @@ function initEventListeners() {
     fileInput.value = '';
   });
   
+  // Export to PDF button
+  document.getElementById('export-pdf').addEventListener('click', exportStatsToPdf);
+  
+  // Export to PNG button
+  document.getElementById('export-png').addEventListener('click', exportStatsToPng);
+  
   // File upload via drag and drop
   uploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -1179,7 +1185,10 @@ function updateStatistics() {
       eventStats[summary] = {
         name: summary,
         count: 0,
-        totalMinutes: 0
+        totalMinutes: 0,
+        dayDistribution: Array(7).fill(0),
+        hourDistribution: Array(24).fill(0),
+        timelineData: {} // Track time spent over dates
       };
     }
     
@@ -1189,14 +1198,29 @@ function updateStatistics() {
     // Add duration if available
     if (event.Duration && !isNaN(event.Duration)) {
       eventStats[summary].totalMinutes += event.Duration;
+      
+      // Track hours over time
+      if (event.StartDate) {
+        const dateKey = formatDateKey(event.StartDate);
+        if (!eventStats[summary].timelineData[dateKey]) {
+          eventStats[summary].timelineData[dateKey] = 0;
+        }
+        eventStats[summary].timelineData[dateKey] += event.Duration / 60; // Convert to hours
+      }
+    }
+    
+    // Add to day and hour distribution if date is available
+    if (event.StartDate) {
+      const dayOfWeek = event.StartDate.getDay();
+      const hour = event.StartDate.getHours();
+      eventStats[summary].dayDistribution[dayOfWeek]++;
+      eventStats[summary].hourDistribution[hour]++;
     }
   });
   
   // Convert to array and sort by hours (totalMinutes)
   const sortedEventStats = Object.values(eventStats)
     .sort((a, b) => b.totalMinutes - a.totalMinutes); // Sort by hours without limiting to top 10
-  
-  // Show the number of event types
   
   // Display event frequency table
   const eventFrequencyElement = document.getElementById('event-frequency');
@@ -1231,56 +1255,298 @@ function updateStatistics() {
     </table>
   `;
   
-  // Create a bar chart for day distribution (excluding ignored ones)
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const dayDistribution = Array(7).fill(0);
+  // Take top categories for visualization
+  const topEventsByMinutes = sortedEventStats.slice(0, 8);
   
-  filteredData.forEach(event => {
-    if (event.StartDate) {
-      const dayOfWeek = event.StartDate.getDay();
-      dayDistribution[dayOfWeek]++;
+  // Color palette for the categories
+  const categoryColors = [
+    '#4285f4', // Blue
+    '#ea4335', // Red
+    '#fbbc05', // Yellow
+    '#34a853', // Green
+    '#aa46bb', // Purple
+    '#f57c00', // Orange
+    '#0097a7', // Teal
+    '#757575'  // Gray
+  ];
+  
+  // Create hours-over-time charts
+  const hoursOverTimeElement = document.getElementById('hours-over-time');
+  if (hoursOverTimeElement) {
+    let hoursOverTimeHTML = '';
+    
+    // Get the date range from the filtered data
+    const dateMap = {};
+    filteredData.forEach(event => {
+      if (event.StartDate) {
+        const dateKey = formatDateKey(event.StartDate);
+        dateMap[dateKey] = true;
+      }
+    });
+    
+    // Convert to sorted array
+    const allDates = Object.keys(dateMap).sort();
+    
+    // Group dates by week
+    const weekDataByCategory = {};
+    
+    // For each category, group its data by week
+    topEventsByMinutes.forEach(eventStat => {
+      const weekData = groupByWeek(eventStat.timelineData, allDates);
+      weekDataByCategory[eventStat.name] = weekData;
+    });
+    
+    // Find the maximum weekly hours across all categories for consistent scale
+    let maxWeeklyHours = 0;
+    Object.values(weekDataByCategory).forEach(weekData => {
+      const categoryMax = Math.max(...Object.values(weekData));
+      if (categoryMax > maxWeeklyHours) {
+        maxWeeklyHours = categoryMax;
+      }
+    });
+    
+    // If maxWeeklyHours is zero, set a default minimum
+    if (maxWeeklyHours === 0) {
+      maxWeeklyHours = 1;
     }
+    
+    // Generate HTML for all categories
+    topEventsByMinutes.forEach((eventStat, index) => {
+      const weekData = weekDataByCategory[eventStat.name];
+      if (Object.keys(weekData).length > 0) {
+        hoursOverTimeHTML += `
+          <div class="category-chart">
+            <div class="category-name">
+              <span class="category-label">${eventStat.name}</span>
+              <span class="category-stats">${(eventStat.totalMinutes / 60).toFixed(1)}h total</span>
+            </div>
+            <div class="time-distribution-chart">
+              <div class="chart-row single-category">
+                <div class="chart-area-container hours-over-time">
+                  <div class="chart-area" 
+                       style="background-color: ${categoryColors[index % categoryColors.length]}; 
+                              opacity: 0.8;">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    });
+    
+    hoursOverTimeElement.innerHTML = hoursOverTimeHTML || '<p class="text-muted-foreground">No hours over time data available</p>';
+    
+    // Create the timeline charts for each category
+    document.querySelectorAll('#hours-over-time .category-chart').forEach((chartElement, index) => {
+      const eventStat = topEventsByMinutes[index];
+      if (!eventStat) return;
+      
+      const chartArea = chartElement.querySelector('.chart-area');
+      if (!chartArea) return;
+      
+      const weekData = weekDataByCategory[eventStat.name];
+      const weekValues = Object.values(weekData);
+      
+      // Use the same scale for all categories
+      const normalizedValues = weekValues.map(value => 
+        100 - (value / maxWeeklyHours * 70) // Invert and scale to keep waves visible
+      );
+      
+      // Create polygon points with a smooth wave-like pattern
+      let points = [];
+      
+      // Start and end at the bottom
+      points.push('0 100%');
+      
+      // Add points for each week
+      const weekCount = weekValues.length;
+      const step = weekCount > 1 ? 100 / (weekCount - 1) : 100;
+      
+      weekValues.forEach((value, i) => {
+        const x = i * step;
+        const y = normalizedValues[i];
+        points.push(`${x}% ${y}%`);
+      });
+      
+      // End at the right bottom
+      points.push('100% 100%');
+      
+      // Apply the custom polygon
+      chartArea.style.clipPath = `polygon(${points.join(', ')})`;
+    });
+  }
+}
+
+// Helper function to format date as YYYY-MM-DD
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Helper function to get the week number
+function getWeekNumber(dateStr) {
+  const date = new Date(dateStr);
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+// Helper function to group data by week
+function groupByWeek(timelineData, allDates) {
+  const weekData = {};
+  
+  // Process all dates to group by week
+  allDates.forEach(dateStr => {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const weekNum = getWeekNumber(dateStr);
+    const weekKey = `W${weekNum}`;
+    
+    if (!weekData[weekKey]) {
+      weekData[weekKey] = 0;
+    }
+    
+    // Add hours for this date to the week total
+    weekData[weekKey] += timelineData[dateStr] || 0;
   });
   
-  // Create the day distribution chart
-  const dayDistributionElement = document.getElementById('day-distribution');
-  const maxDayValue = Math.max(...dayDistribution);
+  return weekData;
+}
+
+// Export statistics to PDF
+function exportStatsToPdf() {
+  // Show loading notification
+  showNotification('Preparing PDF export...', 2000);
   
-  dayDistributionElement.innerHTML = `
-    <div class="flex h-48 items-end space-x-2">
-      ${dayDistribution.map((count, index) => `
-        <div class="flex flex-col items-center flex-1">
-          <div class="w-full bg-primary rounded-t" style="height: ${maxDayValue > 0 ? (count / maxDayValue) * 100 : 0}%"></div>
-          <div class="text-xs mt-1">${daysOfWeek[index].slice(0, 3)}</div>
-          <div class="text-xs text-muted-foreground">${count}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  // Get the statistics tab content
+  const statsTab = document.getElementById('statistics-tab');
   
-  // Create a bar chart for hour distribution (excluding ignored ones)
-  const hourDistribution = Array(24).fill(0);
+  // Create a clone of the statistics tab to modify for PDF
+  const statsClone = statsTab.cloneNode(true);
   
-  filteredData.forEach(event => {
-    if (event.StartDate) {
-      const hour = event.StartDate.getHours();
-      hourDistribution[hour]++;
-    }
-  });
+  // Remove the export button from the clone (we don't need it in the PDF)
+  const exportButtonDiv = statsClone.querySelector('.mb-4.text-right');
+  if (exportButtonDiv) {
+    exportButtonDiv.remove();
+  }
   
-  // Create the hour distribution chart
-  const hourDistributionElement = document.getElementById('hour-distribution');
-  const maxHourValue = Math.max(...hourDistribution);
+  // Create a container with some styling for better PDF output
+  const container = document.createElement('div');
+  container.style.padding = '20px';
+  container.style.maxWidth = '800px';
+  container.style.margin = '0 auto';
+  container.appendChild(statsClone);
   
-  hourDistributionElement.innerHTML = `
-    <div class="flex h-48 items-end space-x-1">
-      ${hourDistribution.map((count, index) => `
-        <div class="flex flex-col items-center flex-1">
-          <div class="w-full bg-primary rounded-t" style="height: ${maxHourValue > 0 ? (count / maxHourValue) * 100 : 0}%"></div>
-          <div class="text-xs mt-1">${index}</div>
-          <div class="text-xs text-muted-foreground">${count}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  // Set PDF export options
+  const opt = {
+    margin: [5, 5, 5, 5],
+    filename: 'calendar-statistics.pdf',
+    image: { type: 'png', quality: 1.0 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      logging: false
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  // Generate the PDF
+  html2pdf()
+    .set(opt)
+    .from(container)
+    .save()
+    .then(() => {
+      // Show success notification
+      showNotification('PDF export complete!');
+    })
+    .catch(error => {
+      console.error('PDF export error:', error);
+      showNotification('Error exporting PDF', 5000);
+    });
+}
+
+// Export statistics to PNG
+function exportStatsToPng() {
+  // Show loading notification
+  showNotification('Preparing PNG export...', 2000);
+  
+  // Get the statistics tab content directly
+  const statsTab = document.getElementById('statistics-tab');
+  
+  // Temporarily hide the export buttons for cleaner screenshot
+  const exportButtonDiv = statsTab.querySelector('.mb-4.text-right');
+  const originalDisplay = exportButtonDiv ? exportButtonDiv.style.display : 'block';
+  if (exportButtonDiv) {
+    exportButtonDiv.style.display = 'none';
+  }
+  
+  // Create a temporary wrapper with padding to add margins
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '20px';
+  wrapper.style.backgroundColor = '#ffffff';
+  
+  // Clone the statsTab to avoid removing it from the DOM
+  const statsClone = statsTab.cloneNode(true);
+  wrapper.appendChild(statsClone);
+  
+  // Temporarily add the wrapper to the body but make it invisible
+  wrapper.style.position = 'absolute';
+  wrapper.style.left = '-9999px';
+  document.body.appendChild(wrapper);
+  
+  // Set PNG export options
+  const opt = {
+    scale: 2,
+    useCORS: true,
+    logging: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff'
+  };
+  
+  // Generate the PNG
+  html2canvas(wrapper, opt)
+    .then(canvas => {
+      // Restore the export buttons display
+      if (exportButtonDiv) {
+        exportButtonDiv.style.display = originalDisplay;
+      }
+      
+      // Remove the temporary wrapper
+      document.body.removeChild(wrapper);
+      
+      // Convert canvas to image
+      const image = canvas.toDataURL('image/png');
+      
+      // Create a download link
+      const link = document.createElement('a');
+      link.setAttribute('href', image);
+      link.setAttribute('download', 'calendar-statistics.png');
+      link.style.display = 'none';
+      
+      // Add to the document, trigger download, and clean up
+      document.body.appendChild(link);
+      link.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+        showNotification('PNG export completed!');
+      }, 100);
+    })
+    .catch(error => {
+      // Restore the export buttons display
+      if (exportButtonDiv) {
+        exportButtonDiv.style.display = originalDisplay;
+      }
+      
+      // Remove the temporary wrapper if it exists
+      if (document.body.contains(wrapper)) {
+        document.body.removeChild(wrapper);
+      }
+      
+      console.error('PNG export error:', error);
+      showNotification('Error exporting PNG', 5000);
+    });
 } 

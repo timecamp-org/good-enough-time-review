@@ -1,6 +1,10 @@
 <div class="">
   <!-- Add Font Awesome CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add html2canvas.js library locally -->
+  <script src="html2canvas.min.js"></script>
+  <!-- Add html2pdf.js library locally -->
+  <script src="html2pdf.bundle.min.js"></script>
   
   <div class="card-header">
     <h1 class="card-title"><i class="fas fa-calendar-alt"></i> Calendar Events Analyzer</h1>
@@ -51,6 +55,10 @@
     </div>
     
     <div id="statistics-tab" class="tab-content" style="display: none;">
+      <div class="mb-4 text-right">
+        <button id="export-png" class="button button-secondary mr-2"><i class="fas fa-file-image"></i> &nbsp; Export to PNG</button>
+        <button id="export-pdf" class="button button-secondary"><i class="fas fa-file-pdf"></i> &nbsp; Export to PDF</button>
+      </div>
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="stat-card">
           <h3><i class="fas fa-calendar-check"></i> Total Events</h3>
@@ -75,7 +83,7 @@
       
       <div class="card mb-4">
         <div class="card-header">
-          <h3 class="card-title"><i class="fas fa-list-ol"></i> Most Common Events</h3>
+          <h3 class="card-title"><i class="fas fa-list-ol"></i> Events</h3>
         </div>
         <div class="card-content">
           <div id="event-frequency">
@@ -99,19 +107,10 @@
       
       <div class="card mb-4">
         <div class="card-header">
-          <h3 class="card-title"><i class="fas fa-calendar"></i> Time Distribution by Day</h3>
+          <h3 class="card-title"><i class="fas fa-chart-line"></i> Hours Over Time</h3>
         </div>
         <div class="card-content">
-          <div id="day-distribution" class="chart-container"></div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title"><i class="fas fa-clock"></i> Time Distribution by Hour</h3>
-        </div>
-        <div class="card-content">
-          <div id="hour-distribution" class="chart-container"></div>
+          <div id="hours-over-time" class="chart-container"></div>
         </div>
       </div>
     </div>

@@ -25,7 +25,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["templates/*"],
+      "resources": ["templates/*", "html2pdf.bundle.min.js", "html2canvas.min.js"],
       "matches": ["<all_urls>"]
     }
   ]
