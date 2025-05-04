@@ -61,7 +61,7 @@
       </div>
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="stat-card">
-          <h3><i class="fas fa-calendar-check"></i> Total Events</h3>
+          <h3><i class="fas fa-calendar-check"></i> Total Time Entries</h3>
           <div id="total-events" class="stat-value">0</div>
         </div>
         <div class="stat-card">
@@ -73,7 +73,7 @@
           <div id="total-hours" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <h3><i class="fas fa-user"></i> About Me</h3>
+          <h3><i class="fas fa-user"></i> About</h3>
           <div id="about-me-content" class="stat-value text-sm date-range">
             <div id="about-me-display" class="text-muted-foreground cursor-pointer">Click to edit notes...</div>
             <textarea id="about-me-input" class="textarea w-full text-sm" style="display: none;" placeholder="Enter your notes here..."></textarea>
@@ -111,6 +111,17 @@
         </div>
         <div class="card-content">
           <div id="hours-over-time" class="chart-container"></div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-th"></i> Time Heatmap</h3>
+        </div>
+        <div class="card-content">
+          <div id="time-heatmap" class="time-heatmap-container">
+            <p class="text-muted-foreground">Loading time heatmap...</p>
+          </div>
         </div>
       </div>
     </div>

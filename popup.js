@@ -24,6 +24,11 @@ function initApp() {
       // Set the template HTML
       app.innerHTML = template;
       
+      // Load the heatmap.js script
+      const heatmapScript = document.createElement('script');
+      heatmapScript.src = 'heatmap.js';
+      document.head.appendChild(heatmapScript);
+      
       // Initialize event listeners
       initEventListeners();
     })
@@ -1375,6 +1380,21 @@ function updateStatistics() {
       // Apply the custom polygon
       chartArea.style.clipPath = `polygon(${points.join(', ')})`;
     });
+  }
+
+  // Generate time heatmap if the function exists
+  const timeHeatmapElement = document.getElementById('time-heatmap');
+  if (timeHeatmapElement && typeof generateTimeHeatmap === 'function') {
+    generateTimeHeatmap(filteredData, timeHeatmapElement);
+  } else if (timeHeatmapElement) {
+    // If the heatmap.js is not loaded yet, try again in a moment
+    setTimeout(() => {
+      if (typeof generateTimeHeatmap === 'function') {
+        generateTimeHeatmap(filteredData, timeHeatmapElement);
+      } else {
+        timeHeatmapElement.innerHTML = '<p class="text-muted-foreground">Time heatmap functionality not available</p>';
+      }
+    }, 1000);
   }
 }
 
