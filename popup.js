@@ -150,6 +150,48 @@ function initEventListeners() {
       normalizationRules = rules;
     }
   });
+
+  // --- About Me Section --- 
+  const aboutMeDisplay = document.getElementById('about-me-display');
+  const aboutMeInput = document.getElementById('about-me-input');
+
+  // Load saved notes
+  chrome.storage.local.get(['aboutMeNotes'], (data) => {
+    if (data.aboutMeNotes) {
+      aboutMeDisplay.textContent = data.aboutMeNotes;
+      aboutMeInput.value = data.aboutMeNotes;
+      // Remove placeholder style if text exists
+      aboutMeDisplay.classList.remove('text-muted-foreground');
+    } else {
+      aboutMeDisplay.textContent = 'Click to edit notes...';
+      aboutMeDisplay.classList.add('text-muted-foreground');
+    }
+  });
+
+  // Show textarea on click
+  aboutMeDisplay.addEventListener('click', () => {
+    aboutMeDisplay.style.display = 'none';
+    aboutMeInput.style.display = 'block';
+    aboutMeInput.focus();
+  });
+
+  // Save and hide textarea on blur
+  aboutMeInput.addEventListener('blur', () => {
+    const notes = aboutMeInput.value.trim();
+    chrome.storage.local.set({ aboutMeNotes: notes });
+
+    aboutMeInput.style.display = 'none';
+    aboutMeDisplay.style.display = 'block';
+    
+    if (notes) {
+      aboutMeDisplay.textContent = notes;
+      aboutMeDisplay.classList.remove('text-muted-foreground');
+    } else {
+      aboutMeDisplay.textContent = 'Click to edit notes...';
+      aboutMeDisplay.classList.add('text-muted-foreground');
+    }
+  });
+  // --- End About Me Section ---
 }
 
 // Save normalization rules on input change
@@ -1107,11 +1149,15 @@ function updateStatistics() {
   });
   
   const totalHours = Math.round(totalMinutes / 60);
-  document.getElementById('total-hours').textContent = totalHours;
   
-  // Calculate average event duration (excluding ignored ones)
-  const avgDuration = eventCount > 0 ? totalMinutes / eventCount : 0;
-  document.getElementById('avg-duration').textContent = formatMinutes(avgDuration);
+  // Calculate days in range (default to 1 if can't determine)
+  let daysInRange = 1;
+  if (earliestDate && latestDate) {
+    daysInRange = Math.max(1, Math.ceil((latestDate - earliestDate) / (1000 * 60 * 60 * 24)));
+  }
+  
+  const hoursPerDay = daysInRange > 0 ? (totalHours / daysInRange).toFixed(1) : 0;
+  document.getElementById('total-hours').textContent = `${totalHours} (${hoursPerDay} per day)`;
   
   // Calculate event frequency and hours per event type (excluding ignored ones)
   const eventStats = {};
@@ -1145,12 +1191,6 @@ function updateStatistics() {
       eventStats[summary].totalMinutes += event.Duration;
     }
   });
-  
-  // Calculate days in range (default to 1 if can't determine)
-  let daysInRange = 1;
-  if (earliestDate && latestDate) {
-    daysInRange = Math.max(1, Math.ceil((latestDate - earliestDate) / (1000 * 60 * 60 * 24)));
-  }
   
   // Convert to array and sort by hours (totalMinutes)
   const sortedEventStats = Object.values(eventStats)
