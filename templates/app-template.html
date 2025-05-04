@@ -1,0 +1,114 @@
+<div class="">
+  <div class="card-header">
+    <h1 class="card-title">Calendar Events Analyzer</h1>
+    <p class="card-description">Upload CSV files to analyze your calendar events</p>
+  </div>
+  <div class="card-content">
+    <div class="tabs mb-4">
+      <div class="tab active" data-tab="upload">Upload</div>
+      <div class="tab" data-tab="normalize">Normalize</div>
+      <div class="tab" data-tab="statistics">Statistics</div>
+    </div>
+    
+    <div id="upload-tab" class="tab-content">
+      <div class="upload-area" id="upload-area">
+        <p>Drag and drop your CSV files here or click to browse</p>
+        <p class="text-xs text-muted-foreground">You can select multiple files</p>
+        <input type="file" id="file-input" accept=".csv" multiple style="display: none;" />
+      </div>
+      <div id="file-info" class="mt-4"></div>
+      <div id="clear-files" class="mt-4" style="display: none;">
+        <button class="button button-secondary">Clear Files</button>
+      </div>
+    </div>
+    
+    <div id="normalize-tab" class="tab-content" style="display: none;">
+      <div class="mb-4">
+        <label class="label" for="normalization-rules">Event Name Normalization Rules</label>
+        <p class="text-xs text-muted-foreground mb-2">Support two formats:</p>
+        <p class="text-xs text-muted-foreground mb-2">1. "Original Event Name=>Normalized Name" - maps a pattern to a name</p>
+        <p class="text-xs text-muted-foreground mb-2">2. "Normalized Name<=pattern1,pattern2,pattern3" - maps multiple patterns to one name</p>
+        <p class="text-xs text-muted-foreground mb-2">You can use * as wildcard: "*meeting*=>Meeting" or match by calendar ID: "id:email@example.com=>Work"</p>
+        <p class="text-xs text-muted-foreground mb-2">Use <strong>IGNORE</strong> as the normalized name to exclude events from statistics: "*standup*=>IGNORE"</p>
+        <textarea id="normalization-rules" class="textarea" placeholder="*meeting*=>Meeting&#10;One-on-One<=*1:1*,*one on one*&#10;id:personal@gmail.com=>Personal&#10;IGNORE<=*standup*,*status update*"></textarea>
+      </div>
+      <div class="mb-4 flex gap-2">
+        <button id="test-normalization" class="button button-secondary">Test Rules</button>
+        <button id="apply-normalization" class="button button-primary">Apply Normalization</button>
+      </div>
+      <div id="normalization-result" class="mt-4"></div>
+      
+      <div class="card mt-4">
+        <div class="card-content">
+          <div id="unique-events-table" class="unique-events-table">
+            <p class="text-muted-foreground">Upload CSV files to see unique events</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="statistics-tab" class="tab-content" style="display: none;">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="stat-card">
+          <h3>Total Events</h3>
+          <div id="total-events" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Timeframe</h3>
+          <div id="date-range" class="stat-value date-range">-</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Hours</h3>
+          <div id="total-hours" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Average Event Duration</h3>
+          <div id="avg-duration" class="stat-value">0 min</div>
+        </div>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">Most Common Events</h3>
+          <p class="text-xs text-muted-foreground" id="events-count"></p>
+        </div>
+        <div class="card-content">
+          <div id="event-frequency">
+            <table class="stats-events-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Event</th>
+                  <th class="text-right">Hours</th>
+                  <th class="text-right">Per Day</th>
+                  <th class="text-right">Percentage</th>
+                  <th class="text-right">Number of events</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- This will be populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">Time Distribution by Day</h3>
+        </div>
+        <div class="card-content">
+          <div id="day-distribution" class="chart-container"></div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Time Distribution by Hour</h3>
+        </div>
+        <div class="card-content">
+          <div id="hour-distribution" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

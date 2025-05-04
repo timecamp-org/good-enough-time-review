@@ -5,6 +5,7 @@
   "description": "Upload and analyze calendar CSV files with event name normalization",
   "permissions": ["storage"],
   "action": {
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",
@@ -18,5 +19,11 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["templates/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 } 

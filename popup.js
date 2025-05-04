@@ -12,109 +12,25 @@ let normalizationRules = {};
 function initApp() {
   const app = document.getElementById('app');
 
-  app.innerHTML = `
-    <div class="">
-      <div class="card-header">
-        <h1 class="card-title">Calendar Events Analyzer</h1>
-        <p class="card-description">Upload CSV files to analyze your calendar events</p>
-      </div>
-      <div class="card-content">
-        <div class="tabs mb-4">
-          <div class="tab active" data-tab="upload">Upload</div>
-          <div class="tab" data-tab="normalize">Normalize</div>
-          <div class="tab" data-tab="statistics">Statistics</div>
-        </div>
-        
-        <div id="upload-tab" class="tab-content">
-          <div class="upload-area" id="upload-area">
-            <p>Drag and drop your CSV files here or click to browse</p>
-            <p class="text-xs text-muted-foreground">You can select multiple files</p>
-            <input type="file" id="file-input" accept=".csv" multiple style="display: none;" />
-          </div>
-          <div id="file-info" class="mt-4"></div>
-          <div id="clear-files" class="mt-4" style="display: none;">
-            <button class="button button-secondary">Clear Files</button>
-          </div>
-        </div>
-        
-        <div id="normalize-tab" class="tab-content" style="display: none;">
-          <div class="mb-4">
-            <label class="label" for="normalization-rules">Event Name Normalization Rules</label>
-            <p class="text-xs text-muted-foreground mb-2">Support two formats:</p>
-            <p class="text-xs text-muted-foreground mb-2">1. "Original Event Name=>Normalized Name" - maps a pattern to a name</p>
-            <p class="text-xs text-muted-foreground mb-2">2. "Normalized Name<=pattern1,pattern2,pattern3" - maps multiple patterns to one name</p>
-            <p class="text-xs text-muted-foreground mb-2">You can use * as wildcard: "*meeting*=>Meeting" or match by calendar ID: "id:email@example.com=>Work"</p>
-            <p class="text-xs text-muted-foreground mb-2">Use <strong>IGNORE</strong> as the normalized name to exclude events from statistics: "*standup*=>IGNORE"</p>
-            <textarea id="normalization-rules" class="textarea" placeholder="*meeting*=>Meeting&#10;One-on-One<=*1:1*,*one on one*&#10;id:personal@gmail.com=>Personal&#10;IGNORE<=*standup*,*status update*"></textarea>
-          </div>
-          <div class="mb-4 flex gap-2">
-            <button id="test-normalization" class="button button-secondary">Test Rules</button>
-            <button id="apply-normalization" class="button button-primary">Apply Normalization</button>
-          </div>
-          <div id="normalization-result" class="mt-4"></div>
-          
-          <div class="card mt-4">
-            <div class="card-content">
-              <div id="unique-events-table" class="unique-events-table">
-                <p class="text-muted-foreground">Upload CSV files to see unique events</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div id="statistics-tab" class="tab-content" style="display: none;">
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="stat-card">
-              <h3>Total Events</h3>
-              <div id="total-events" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-              <h3>Unique Event Types</h3>
-              <div id="unique-events" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-              <h3>Total Hours</h3>
-              <div id="total-hours" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-              <h3>Average Event Duration</h3>
-              <div id="avg-duration" class="stat-value">0 min</div>
-            </div>
-          </div>
-          
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Most Common Events</h3>
-            </div>
-            <div class="card-content">
-              <div id="event-frequency"></div>
-            </div>
-          </div>
-          
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Time Distribution by Day</h3>
-            </div>
-            <div class="card-content">
-              <div id="day-distribution" class="chart-container"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Time Distribution by Hour</h3>
-            </div>
-            <div class="card-content">
-              <div id="hour-distribution" class="chart-container"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Initialize event listeners
-  initEventListeners();
+  // Fetch the HTML template
+  fetch('templates/app-template.html')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to load template');
+      }
+      return response.text();
+    })
+    .then(template => {
+      // Set the template HTML
+      app.innerHTML = template;
+      
+      // Initialize event listeners
+      initEventListeners();
+    })
+    .catch(error => {
+      console.error('Error loading template:', error);
+      app.innerHTML = '<div class="error">Failed to load application. Please try again.</div>';
+    });
 }
 
 // Initialize all event listeners
@@ -1021,13 +937,33 @@ function updateStatistics() {
     analyzedEventsElement.textContent = filteredData.length;
   }
   
-  // Count unique event types (excluding ignored ones)
-  const eventTypes = new Set();
+  // Calculate date range (timeframe)
+  let earliestDate = null;
+  let latestDate = null;
+  
   filteredData.forEach(event => {
-    const summary = event.NormalizedSummary || event.Summary || '';
-    if (summary) eventTypes.add(summary.toLowerCase());
+    if (event.StartDate) {
+      if (!earliestDate || event.StartDate < earliestDate) {
+        earliestDate = event.StartDate;
+      }
+      if (!latestDate || event.StartDate > latestDate) {
+        latestDate = event.StartDate;
+      }
+    }
   });
-  document.getElementById('unique-events').textContent = eventTypes.size;
+  
+  // Format and display the date range
+  const dateRangeElement = document.getElementById('date-range');
+  if (earliestDate && latestDate) {
+    const formatDate = (date) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    };
+    
+    dateRangeElement.innerHTML = `${formatDate(earliestDate)} - ${formatDate(latestDate)}`;
+  } else {
+    dateRangeElement.textContent = 'No date range';
+  }
   
   // Calculate total duration in hours (excluding ignored ones)
   let totalMinutes = 0;
@@ -1047,29 +983,83 @@ function updateStatistics() {
   const avgDuration = eventCount > 0 ? totalMinutes / eventCount : 0;
   document.getElementById('avg-duration').textContent = formatMinutes(avgDuration);
   
-  // Calculate event frequency (excluding ignored ones)
-  const eventFrequency = {};
+  // Calculate event frequency and hours per event type (excluding ignored ones)
+  const eventStats = {};
+  let totalEventMinutes = 0;
+  
+  // Calculate total minutes for all events first (for percentage calculation)
   filteredData.forEach(event => {
-    const summary = (event.NormalizedSummary || event.Summary || 'Unknown').toLowerCase();
-    eventFrequency[summary] = (eventFrequency[summary] || 0) + 1;
+    if (event.Duration && !isNaN(event.Duration)) {
+      totalEventMinutes += event.Duration;
+    }
   });
   
-  // Sort by frequency
-  const sortedEvents = Object.entries(eventFrequency)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
+  // Now calculate stats for each event type
+  filteredData.forEach(event => {
+    const summary = (event.NormalizedSummary || event.Summary || 'Unknown').toLowerCase();
+    
+    // Initialize if not exists
+    if (!eventStats[summary]) {
+      eventStats[summary] = {
+        name: summary,
+        count: 0,
+        totalMinutes: 0
+      };
+    }
+    
+    // Increment count
+    eventStats[summary].count += 1;
+    
+    // Add duration if available
+    if (event.Duration && !isNaN(event.Duration)) {
+      eventStats[summary].totalMinutes += event.Duration;
+    }
+  });
   
-  // Display event frequency
+  // Calculate days in range (default to 1 if can't determine)
+  let daysInRange = 1;
+  if (earliestDate && latestDate) {
+    daysInRange = Math.max(1, Math.ceil((latestDate - earliestDate) / (1000 * 60 * 60 * 24)));
+  }
+  
+  // Convert to array and sort by hours (totalMinutes)
+  const sortedEventStats = Object.values(eventStats)
+    .sort((a, b) => b.totalMinutes - a.totalMinutes); // Sort by hours without limiting to top 10
+  
+  // Show the number of event types
+  document.getElementById('events-count').textContent = `Showing all ${sortedEventStats.length} event types`;
+  
+  // Display event frequency table
   const eventFrequencyElement = document.getElementById('event-frequency');
   eventFrequencyElement.innerHTML = `
-    <ul class="space-y-2">
-      ${sortedEvents.map(([name, count]) => `
-        <li class="flex justify-between">
-          <span class="truncate mr-4">${name}</span>
-          <span class="font-bold">${count}</span>
-        </li>
-      `).join('')}
-    </ul>
+    <table class="stats-events-table">
+      <thead>
+        <tr>
+          <th class="text-left">Event</th>
+          <th class="text-right">Hours</th>
+          <th class="text-right">Per Day</th>
+          <th class="text-right">Percentage</th>
+          <th class="text-right">Number of events</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sortedEventStats.map(event => {
+          const hours = event.totalMinutes / 60;
+          const perDay = hours / daysInRange;
+          const percentage = totalEventMinutes > 0 ? (event.totalMinutes / totalEventMinutes) * 100 : 0;
+          
+          return `
+            <tr>
+              <td class="text-left"><strong>${event.name}</strong></td>
+              <td class="text-right">${hours.toFixed(1)}</td>
+              <td class="text-right">${perDay.toFixed(1)}</td>
+              <td class="text-right">${percentage.toFixed(1)}%</td>
+              <td class="text-right">${event.count}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
   `;
   
   // Create a bar chart for day distribution (excluding ignored ones)
