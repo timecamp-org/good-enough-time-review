@@ -1251,7 +1251,10 @@ function updateStatistics() {
               <td class="text-left"><strong>${event.name}</strong></td>
               <td class="text-right">${hours.toFixed(1)}</td>
               <td class="text-right">${perDay.toFixed(1)}</td>
-              <td class="text-right">${percentage.toFixed(1)}%</td>
+              <td class="text-right" style="position: relative;">
+                <div style="position: absolute; top: 0; left: 0; bottom: 0; width: ${percentage}%; background-color: rgba(66, 133, 244, 0.15); z-index: 0;"></div>
+                <span style="position: relative; z-index: 1;">${percentage.toFixed(1)}%</span>
+              </td>
               <td class="text-right">${event.count}</td>
             </tr>
           `;

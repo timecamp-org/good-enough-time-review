@@ -23,6 +23,7 @@
         <p class="text-xs text-muted-foreground">You can select multiple files</p>
         <input type="file" id="file-input" accept=".csv" multiple style="display: none;" />
       </div>
+      Free tool to download calendar events as CSV file: <a href="https://www.timecamp.com/export-google-calendar/?utm_source=chrome_plugin&utm_medium=chrome_plugin&utm_campaign=chrome_plugin" target="_blank">https://www.timecamp.com/export-google-calendar/</a>
       <div id="file-info" class="mt-4"></div>
       <div id="clear-files" class="mt-4" style="display: none;">
         <button class="button button-secondary"><i class="fas fa-trash"></i> Clear Files</button>
@@ -61,23 +62,23 @@
       </div>
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="stat-card">
-          <h3><i class="fas fa-calendar-check"></i> Total Time Entries</h3>
-          <div id="total-events" class="stat-value">0</div>
-        </div>
-        <div class="stat-card">
           <h3><i class="fas fa-calendar-week"></i> Timeframe</h3>
           <div id="date-range" class="stat-value date-range">-</div>
+        </div>
+        <div class="stat-card">
+            <h3><i class="fas fa-user"></i> About</h3>
+            <div id="about-me-content" class="stat-value text-sm date-range">
+              <div id="about-me-display" class="text-muted-foreground cursor-pointer">Click to edit notes...</div>
+              <textarea id="about-me-input" class="textarea w-full text-sm" style="display: none;" placeholder="Enter your notes here..."></textarea>
+            </div>
         </div>
         <div class="stat-card">
           <h3><i class="fas fa-clock"></i> Total Hours</h3>
           <div id="total-hours" class="stat-value">0</div>
         </div>
         <div class="stat-card">
-          <h3><i class="fas fa-user"></i> About</h3>
-          <div id="about-me-content" class="stat-value text-sm date-range">
-            <div id="about-me-display" class="text-muted-foreground cursor-pointer">Click to edit notes...</div>
-            <textarea id="about-me-input" class="textarea w-full text-sm" style="display: none;" placeholder="Enter your notes here..."></textarea>
-          </div>
+            <h3><i class="fas fa-calendar-check"></i> Total Time Entries</h3>
+            <div id="total-events" class="stat-value">0</div>
         </div>
       </div>
       
