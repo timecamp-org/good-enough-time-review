@@ -1428,9 +1428,13 @@ function exportStatsToPdf() {
   
   // Get the statistics tab content
   const statsTab = document.getElementById('statistics-tab');
+  // Get the footer element
+  const footer = document.querySelector('.footer');
   
   // Create a clone of the statistics tab to modify for PDF
   const statsClone = statsTab.cloneNode(true);
+  // Clone the footer
+  const footerClone = footer ? footer.cloneNode(true) : null;
   
   // Remove the export button from the clone (we don't need it in the PDF)
   const exportButtonDiv = statsClone.querySelector('.mb-4.text-right');
@@ -1444,6 +1448,10 @@ function exportStatsToPdf() {
   container.style.maxWidth = '800px';
   container.style.margin = '0 auto';
   container.appendChild(statsClone);
+  // Append the cloned footer if it exists
+  if (footerClone) {
+    container.appendChild(footerClone);
+  }
   
   // Set PDF export options
   const opt = {
@@ -1480,6 +1488,8 @@ function exportStatsToPng() {
   
   // Get the statistics tab content directly
   const statsTab = document.getElementById('statistics-tab');
+  // Get the footer element
+  const footer = document.querySelector('.footer');
   
   // Temporarily hide the export buttons for cleaner screenshot
   const exportButtonDiv = statsTab.querySelector('.mb-4.text-right');
@@ -1495,7 +1505,14 @@ function exportStatsToPng() {
   
   // Clone the statsTab to avoid removing it from the DOM
   const statsClone = statsTab.cloneNode(true);
+  // Clone the footer
+  const footerClone = footer ? footer.cloneNode(true) : null;
+  
   wrapper.appendChild(statsClone);
+  // Append the cloned footer if it exists
+  if (footerClone) {
+    wrapper.appendChild(footerClone);
+  }
   
   // Temporarily add the wrapper to the body but make it invisible
   wrapper.style.position = 'absolute';
