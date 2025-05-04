@@ -1,0 +1,566 @@
+@import 'https://cdn.jsdelivr.net/npm/tailwindcss@3.3.5/dist/tailwind.min.css';
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(240 10% 3.9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 10% 3.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(240 10% 3.9%);
+  --primary: hsl(240 5.9% 10%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(240 4.8% 95.9%);
+  --secondary-foreground: hsl(240 5.9% 10%);
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
+  --accent: hsl(240 4.8% 95.9%);
+  --accent-foreground: hsl(240 5.9% 10%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(240 5.9% 90%);
+  --input: hsl(240 5.9% 90%);
+  --ring: hsl(240 5.9% 10%);
+  --success: hsl(142 76% 36%);
+  --amber: hsl(38 92% 50%);
+}
+
+.dark {
+  --background: hsl(240 10% 3.9%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(240 10% 3.9%);
+  --popover-foreground: hsl(0 0% 98%);
+  --primary: hsl(0 0% 98%);
+  --primary-foreground: hsl(240 5.9% 10%);
+  --secondary: hsl(240 3.7% 15.9%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(240 3.7% 15.9%);
+  --muted-foreground: hsl(240 5% 64.9%);
+  --accent: hsl(240 3.7% 15.9%);
+  --accent-foreground: hsl(0 0% 98%);
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(240 3.7% 15.9%);
+  --input: hsl(240 3.7% 15.9%);
+  --ring: hsl(240 4.9% 83.9%);
+  --success: hsl(142 76% 36%);
+  --amber: hsl(38 92% 50%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-amber: var(--amber);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 800px;
+  min-height: 600px;
+  background-color: var(--background);
+  color: var(--foreground);
+  min-width: unset;
+  min-height: unset;
+
+}
+
+#app {
+  padding: 1rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Shadcn-like component styling */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  text-align: center;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.button-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.button-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.button-destructive {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.input {
+  flex: 1 1 auto;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-color: var(--input);
+  background-color: transparent;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--ring);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-color: var(--input);
+  background-color: transparent;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--ring);
+}
+
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.card-description {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  gap: 0.5rem;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: var(--foreground);
+  border-bottom-color: var(--primary);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mr-4 {
+  margin-right: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-green-500 {
+  color: var(--success);
+}
+
+.text-amber-500 {
+  color: var(--amber);
+}
+
+.text-destructive {
+  color: var(--destructive);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+/* Custom styling for our app */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.upload-area:hover {
+  border-color: var(--primary);
+}
+
+.upload-area.border-primary {
+  border-color: var(--primary);
+}
+
+.stat-card {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  margin-top: 1rem;
+}
+
+.file-list {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.file-list-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-count {
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+/* Table styles */
+.table-wrapper {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+}
+
+.table-wrapper::after {
+  content: "Click to select all";
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  background-color: var(--background);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.table-wrapper:hover::after {
+  opacity: 1;
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.events-table th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--secondary);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.events-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.events-table tr:last-child td {
+  border-bottom: none;
+}
+
+.events-table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+/* Rows with matching rules */
+.events-table tr[data-has-rule="true"] td {
+  background-color: rgba(var(--success-rgb, 22, 163, 74), 0.05);
+}
+
+.events-table tr[data-has-rule="true"]:hover td {
+  background-color: rgba(var(--success-rgb, 22, 163, 74), 0.1);
+}
+
+/* Rows with ignored events */
+.events-table tr[data-ignored="true"] td {
+  opacity: 0.5;
+  background-color: rgba(var(--muted-foreground-rgb, 113, 113, 122), 0.1);
+  text-decoration: line-through;
+}
+
+.events-table tr[data-ignored="true"]:hover td {
+  opacity: 0.7;
+  background-color: rgba(var(--muted-foreground-rgb, 113, 113, 122), 0.15);
+}
+
+/* First column (count) styling */
+.events-table th:first-child,
+.events-table td:first-child {
+  width: 80px;
+  text-align: center;
+}
+
+/* For test results table */
+.events-table th:nth-child(5),
+.events-table td:nth-child(5) {
+  color: var(--success);
+}
+
+/* Name/ID column width limit and tooltip */
+.events-table th:nth-child(3),
+.events-table td:nth-child(3) {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+/* Normalized column width limit */
+.events-table th:nth-child(4),
+.events-table td:nth-child(4) {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+/* Tooltip for truncated content */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 20;
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  word-wrap: break-word;
+  white-space: normal;
+  font-size: 0.75rem;
+}
+
+/* Notification styles */
+.notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--amber);
+  color: var(--secondary-foreground);
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  transform: translateY(-1rem);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Unique events container - remove max height limit */
+.unique-events-table {
+  width: 100%;
+}
+
+/* Row number column styling */
+.events-table th:first-child,
+.events-table td:first-child {
+  width: 40px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+/* Count column styling (now second column) */
+.events-table th:nth-child(2),
+.events-table td:nth-child(2) {
+  width: 80px;
+  text-align: center;
+} 
